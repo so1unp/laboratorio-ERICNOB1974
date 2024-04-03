@@ -82,12 +82,12 @@ runcmd(struct cmd *cmd)
   case REDIR:
     rcmd = (struct redircmd *) cmd;
     close(rcmd->fd);    //Cierro el fd actual
-    int fdAux = open(rcmd->file, 0644); //Abro el archivo que va a tener el mismo fd anterior
+    int fdAux = open(rcmd->file, rcmd->mode); //Abro el archivo que va a tener el mismo fd anterior
     if (fdAux < 0) {
         printf(2,"Error al abrir el archivo\n");
         exit();
     }
-    runcmd(rcmd->cmd);
+    runcmd(rcmd->cmd);  
     printf(2,"Error al ejecutar\n");
     exit();
     break;

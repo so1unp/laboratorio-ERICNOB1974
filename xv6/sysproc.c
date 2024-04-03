@@ -96,7 +96,7 @@ int
 sys_trace(void)
 {
     if (argint(0, &trace) < 0)
-        return -1;
+      return -1;
     return 0;
 }
 
