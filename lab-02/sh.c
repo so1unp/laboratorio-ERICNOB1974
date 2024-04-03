@@ -65,18 +65,21 @@ void runcmd(struct cmd *cmd)
         case EXEC:
             ecmd = (struct execcmd *) cmd;
             if (ecmd->argv[0] == 0)
-                exit(0);
-            fprintf(stderr, "exec not implemented\n");
-            // Your code here ...
+                exit(0);        //Si solo apreto enter, sale
+            execvp(ecmd->argv[0], ecmd->argv);
+            perror("Error al ejecutar");
             break;
-
         case REDIR:
-            fprintf(stderr, "redir not implemented\n");
-            // Your code here ...
             rcmd = (struct redircmd *) cmd;
+            close(rcmd->fd);    //Cierro el fd actual
+            int fdAux = open(rcmd->file, 0644); //Abro el archivo que va a tener el mismo fd anterior
+            if (fdAux < 0) {
+                perror("Error al abrir el archivo");
+                exit(EXIT_FAILURE);
+            }
             runcmd(rcmd->cmd);
+            perror("Error al ejecutar");
             break;
-
         case PIPE:
             fprintf(stderr, "pipe not implemented\n");
             // Your code here ...

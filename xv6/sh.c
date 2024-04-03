@@ -72,15 +72,24 @@ runcmd(struct cmd *cmd)
 
   case EXEC:
     ecmd = (struct execcmd*)cmd;
-    if(ecmd->argv[0] == 0)
-      exit();
-    printf(2, "exec not implemented\n");
+    if (ecmd->argv[0] == 0)
+      exit();        //Si solo apreto enter, sale
+    exec(ecmd->argv[0], ecmd->argv);
+    printf(2,"Error al ejecutar\n");
+    exit();
     break;
 
   case REDIR:
-    printf(2, "redir not implemented\n");
-    rcmd = (struct redircmd*)cmd;
+    rcmd = (struct redircmd *) cmd;
+    close(rcmd->fd);    //Cierro el fd actual
+    int fdAux = open(rcmd->file, 0644); //Abro el archivo que va a tener el mismo fd anterior
+    if (fdAux < 0) {
+        printf(2,"Error al abrir el archivo\n");
+        exit();
+    }
     runcmd(rcmd->cmd);
+    printf(2,"Error al ejecutar\n");
+    exit();
     break;
 
   case LIST:
