@@ -532,3 +532,21 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+int sys_pscnt(void)
+{
+  struct proc *p;
+  int processCounter = 0;
+
+  acquire(&ptable.lock);
+
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+      if (p->state != UNUSED && p->state != EMBRYO) {
+          processCounter++;
+      }
+  }
+
+  release(&ptable.lock);
+
+  return processCounter;
+}
