@@ -5,21 +5,27 @@
 // Variable global que incrementan los hilos.
 static long glob = 0;
 
-void increment_glob(int loops)
+void *increment_glob(void* p)
 {
-    int loc, j;
+    long loc, j;
 
+    long loops = (long)p;
+    
     // incrementa glob
     for (j = 0; j < loops; j++) {
         loc = glob;
         loc++;
         glob = loc;
     }
+
+    pthread_exit(NULL);
+
 }
 
 int main(int argc, char *argv[])
 {
-    int loops;
+    long loops;
+    int cantidadHilos = 2;
 
     // Controla numero de argumentos.
     if (argc != 2) {
@@ -33,6 +39,26 @@ int main(int argc, char *argv[])
     if (loops < 1) {
         fprintf(stderr, "Error: ciclos debe ser mayor a cero.\n");
         exit(EXIT_FAILURE);
+    }
+
+    int retorno;
+    pthread_t hilos[cantidadHilos];
+    long i;
+
+    for (i = 0; i< cantidadHilos;i++){
+        retorno = pthread_create(&hilos[i], NULL, increment_glob, (void *) loops);
+        if (retorno != 0) {
+            fprintf(stderr, "Error al crear el hilo\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    for (i = 0; i < cantidadHilos;i++){
+        retorno = pthread_join(hilos[i], NULL);
+        if (retorno != 0) {
+            fprintf(stderr, "Error al esperar al hilo \n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     printf("%ld\n", glob);

@@ -40,6 +40,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Uso: %s [-R | -F] hilos items\n", argv[0]);
         fprintf(stderr, "\t-R       SCHED_RR.\n");
         fprintf(stderr, "\t-F       SCHED_FIFO.\n");
+        fprintf(stderr, "\t-C       SCHED_OTHER.\n");
         fprintf(stderr, "\thilos    Número de hilos a generar.\n");
         fprintf(stderr, "\titems    Cuantos items escribe el hilo en el buffer.\n");
         exit(EXIT_FAILURE);
@@ -58,12 +59,20 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (argv[1][1] != 'R' && argv[1][1] != 'F') {
-        fprintf(stderr, "Error: opción invalida %s.\nUsar -R (SCHED_RR) o -F (SCHED_FIFO)\n", argv[1]);
+    if (argv[1][1] != 'R' && argv[1][1] != 'F' && argv[1][1] != 'C') {
+        fprintf(stderr, "Error: opción invalida %s.\nUsar -R (SCHED_RR) o -F (SCHED_FIFO) o -C (SCHED_OTHERS)\n", argv[1]);
         exit(EXIT_FAILURE);
     }
 
-    sched_policy = argv[1][1] == 'R' ? SCHED_RR : SCHED_FIFO;
+    if (argv[1][1] == 'F') {
+        sched_policy = SCHED_FIFO;
+    }
+    if (argv[1][1] == 'R') {
+        sched_policy = SCHED_RR;
+    }
+    if (argv[1][1] == 'C') {
+        sched_policy = SCHED_OTHER;
+    }
 
     // Reserva espacio para un arreglo donde guardar variables de tipo pthread_t
     threads = (pthread_t*) malloc(count * sizeof(pthread_t));
@@ -83,23 +92,36 @@ int main(int argc, char *argv[]) {
     // Indica que al crear un hilo usando attr como parámetros, este debe
     // utilizar la política de planificación indicada en dichos parámetros.
     // COMPLETAR: pthread_attr_setinheritsched()
+    pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
 
     // Indica que la política de planificación será Round Robin.
     // COMPLETAR: pthread_attr_setschedpolicy()
+    pthread_attr_setschedpolicy(&attr, sched_policy);
 
     // Indica el nivel de prioridad que tendrá el hilo creado utilizando attr.
     param.sched_priority = 1;
     // COMPLETAR: pthread_attr_setschedparam()
+    pthread_attr_setschedparam(&attr, &param);
 
     // Indica que el hilo creado utilizando el atributo attr debe ejecutar
     // siempre en la CPU 0.
     // COMPLETAR: usar CPU_ZERO, CPU_SET y pthread_attr_setaffinity_np()
+    cpu_set_t p;
+    CPU_ZERO(&p);
+    CPU_SET(0, &p);
+    pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &p);
 
     // Crea los hilos.
     // COMPLETAR
+    for (i = 0; i < count; i++) {
+        pthread_create(&threads[i], &attr, write_buffer, (void *)(long)i);
+    }
 
     // Espera a que terminen todos los hilos.
     // COMPLETAR
+    for (i = 0; i < count; i++) {
+        pthread_join(threads[i], &status);
+    }
 
     // Imprime el buffer.
     for (i = 0; i < count * items; i++) {

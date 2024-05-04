@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 void test_fork(int count);
 void test_thread(int count);
@@ -74,12 +75,27 @@ void test_fork(int count)
 // Código para la prueba con pthread_create()
 //==========================================================================
 
+void *thread_function(void *p) {
+    pthread_exit(NULL);
+}
+
 void test_thread(int count) 
 {
+
+    pthread_t hilo;
     int j;
-    
+    int retorno;
     for (j = 0; j < count; j++) {
-        // COMPLETAR: CREAR UN HILO
-        // COMPLETAR: ESPERAR POR HILO RECIEN CREADO
+        retorno = pthread_create(&hilo, NULL, thread_function, NULL);
+        if (retorno != 0) {
+            fprintf(stderr, "Error al crear el hilo\n");
+            exit(EXIT_FAILURE);
+        }
+        retorno = pthread_join(hilo, NULL);
+        if (retorno != 0) {
+            fprintf(stderr, "Error al esperar al hilo \n");
+            exit(EXIT_FAILURE);
+        }
     }
+
 }
