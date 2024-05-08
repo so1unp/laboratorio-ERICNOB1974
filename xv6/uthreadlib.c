@@ -37,28 +37,28 @@ thread_init(void)
   current_thread->state = RUNNING;
 }
 
+static int last_index = 0;
 void 
 thread_schedule(void)
 {
-  thread_p t;
-
   /* Find another runnable thread. */
   next_thread = 0;
-  for (t = all_thread; t < all_thread + MAX_THREAD; t++) {
+  thread_p t;
+  int i, index;
+
+  for (i = 0; i < MAX_THREAD; i++) {
+    index = (last_index + i) % MAX_THREAD;
+    t = &all_thread[index];
     if (t->state == RUNNABLE && t != current_thread) {
       next_thread = t;
+      last_index = index; 
       break;
     }
   }
 
-  if (t >= all_thread + MAX_THREAD && current_thread->state == RUNNABLE) {
-    /* The current thread is the only runnable thread; run it. */
-    next_thread = current_thread;
-  }
-
   if (next_thread == 0) {
     printf(2, "thread_schedule: no runnable threads\n");
-    exit();
+    next_thread = &all_thread[0]; //En vez de hacer exit, vuelve al main (hilo que esta en la posicion 0)
   }
 
   if (current_thread != next_thread) {         /* switch threads?  */
@@ -68,6 +68,8 @@ thread_schedule(void)
     next_thread = 0;
   }
 }
+
+
 
 void 
 thread_create(void (*func)())
@@ -103,4 +105,3 @@ thread_id(void)
 {
     return (int) current_thread;
 }
-

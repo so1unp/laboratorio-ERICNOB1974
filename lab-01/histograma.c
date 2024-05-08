@@ -34,21 +34,21 @@ int main(int argc, char *argv[])
         if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
             i++;
         }
-	else{
-	    cantLetras[i]++;
-	    i=0;
-	}
+        else{
+            cantLetras[i]++;
+            i=0;
+        }
     }
 
     i=1;
 
     for (i;i<(sizeof(cantLetras)/sizeof(cantLetras[0]));i++){
-	printf("%d ",i);
-	int j=0;
-    	for (j;j<cantLetras[i];j++){
-		printf("*");
-	}
-	printf("\n");
+        printf("%d ",i);
+        int j=0;
+        for (j;j<cantLetras[i];j++){
+            printf("*");
+        }
+        printf("\n");
     }
 
     // Termina la ejecución del programa.

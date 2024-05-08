@@ -7,13 +7,13 @@ int main(int argc, char *argv[])
     char c = 0;
     printf("Ingrese una frase (O control + c para salir)\n");
     while(1){
-	if ((c = getchar()) != EOF){
-		if (c != ' '){
-			printf("%c",c);	
-		}
-		else{
-			printf("\n");
-		}
+        if ((c = getchar()) != EOF){
+            if (c != ' '){
+                printf("%c",c);	
+            }
+            else{
+                printf("\n");
+            }
         }
     }
     
