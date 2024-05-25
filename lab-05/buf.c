@@ -23,6 +23,9 @@ struct params {
     int wait_cons;
     int items;
     struct buffer* buf;
+    pthread_mutex_t mutex;
+    sem_t llenos;
+    sem_t vacios;
 } params_t;
 
 /* Productor */
@@ -33,8 +36,12 @@ static void* producer(void *p)
     struct params *params = (struct params*) p;
 
     for (i = 0; i < params->items; i++) {
+        sem_wait(&params->vacios);
+        pthread_mutex_lock(&params->mutex);
         params->buf->buf[i % params->buf->size] = i;
+        pthread_mutex_unlock(&params->mutex);
         // Espera una cantidad aleatoria de microsegundos.
+        sem_post(&params->llenos);
         usleep(rand() % params->wait_prod);
     }
 
@@ -44,6 +51,7 @@ static void* producer(void *p)
 /* Consumidor */
 static void* consumer(void *p)
 {
+
     int i;
 
     struct params *params = (struct params*) p;
@@ -52,7 +60,11 @@ static void* consumer(void *p)
     int *reader_results = (int*) malloc(sizeof(int)*params->items);
 
     for (i = 0; i < params->items; i++) {
+        sem_wait(&params->llenos);
+        pthread_mutex_lock(&params->mutex);
         reader_results[i] = params->buf->buf[i % params->buf->size];
+        pthread_mutex_unlock(&params->mutex);
+        sem_post(&params->vacios);
         // Espera una cantidad aleatoria de microsegundos.
         usleep(rand() % params->wait_prod);
     }
@@ -108,8 +120,7 @@ int main(int argc, char** argv)
         perror("malloc");
         exit(EXIT_FAILURE);
     }
-
-    params->buf = buf;
+    params->buf=buf;
 
     // Cantidad de items a producir.
     params->items = atoi(argv[2]);
@@ -117,6 +128,9 @@ int main(int argc, char** argv)
         fprintf(stderr, "counter tiene que ser mayor que cero.\n");
         exit(EXIT_FAILURE);
     }
+
+    sem_init(&params->llenos, 0, 0);
+    sem_init(&params->vacios, 0, params->buf->size);
 
     params->wait_prod = atoi(argv[3]);
     if (params->wait_prod <= 0) {
@@ -130,6 +144,8 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
+    pthread_mutex_init(&params->mutex,NULL);
+
     // Inicializa semilla para números pseudo-aleatorios.
     srand(getpid());
 
@@ -138,5 +154,8 @@ int main(int argc, char** argv)
     pthread_create(&consumer_t, NULL, consumer, params);
 
     // Mi trabajo ya esta hecho ...
+    sem_destroy(&params->vacios);
+    sem_destroy(&params->llenos);
+    pthread_mutex_destroy(&params->mutex);
     pthread_exit(NULL);
 }
