@@ -28,6 +28,10 @@ int main(void) {
         // Esperamos la señal SIGUSR1
         pause();
     } else {
+
+        a++;
+        (*p) = 1;
+
         // Esperamos la señal SIGUSR1
         pause();
     }
